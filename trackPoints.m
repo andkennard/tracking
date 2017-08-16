@@ -5,6 +5,7 @@ function all_points = trackPoints(reader,params)
 sizeX = reader.getSizeX();
 sizeY = reader.getSizeY();
 sizeT = reader.getSizeT();
+h = waitbar(0,'Initializing...');
 
 %Load first image and get some points
 
@@ -47,16 +48,18 @@ end
 
 %LOOP THROUGH MOVIE
 for iT = 2:stop_frame
-    if mod(iT,5) == 0
-        disp(iT)
-    end
-    
+    progress = iT / stop_frame;
+    waitbar(progress,h,sprintf('Tracking frames, %d%% completed...',progress*100));
     %Preprocess frame
     im = bf_getFrame(reader,1,1,iT);
     im_p = params.preprocess_func(im);
     
     %Track points and update all_points
     [pT, validity] = step(tracker,im_p);
+    %Some points may have been "tracked" to locations outside the image.
+    %Mark those as no longer valid and "correct" the location so that they
+    %do not interfere with the tracker
+    [pT, validity] = correctOutOfBoundPts(pT,validity,[sizeY,sizeX]);
     all_points(iT).coords = double(pT);
     all_points(iT).validity = logical(validity);
     all_points(iT).ID = all_points(iT-1).ID; %no points have been updated yet
@@ -66,8 +69,12 @@ for iT = 2:stop_frame
     if (iT > params.point_update_delay) && ...
        mod(iT,params.point_update_interval)==0
        
-       [OUTPUT] = updatePoints(all_points(iT),reader,params); %FINISH!!!
+       all_points(iT) = updatePoints(all_points(iT),reader,params); %FINISH!!!
        
+    end
+end
+close(h)
+end
        
         
     
