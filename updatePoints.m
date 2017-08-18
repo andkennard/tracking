@@ -18,6 +18,7 @@ function newpoint_struct = updatePoints(oldpoint_struct,im,params)
     %Bin points into a 2D grid, and figure out how many points lie in each
     %point of the 2D grid (and how many pixels are in each sector of the
     %grid)
+
     [n_valid,bin_areas,edges_x,edges_y] = getNumValidPoints(goodcoords,[sizeX,sizeY],[bin_size_x,bin_size_y]);
     %Get the point density by dividing by the total number of pixels in
     %that bin
@@ -25,11 +26,11 @@ function newpoint_struct = updatePoints(oldpoint_struct,im,params)
     %Identify which bins need more points generated
     need_more_points = find(point_density < params.point_density_thresh);
     
-    for p = need_more_points
-        newpts = generateNewPoints(im,p,edges_x,edges_y,size(n_valid));
+    for k = 1:numel(need_more_points);
+        newpts = generateNewPoints(im,need_more_points(k),edges_x,edges_y,size(n_valid));
         [num_newpts, ~] = size(newpts);
         %Update point list
-        allpts = [allpts ; newpts];
+        allcoords = [allcoords ; newpts];
         %Update validity, all new points start off valid
         allvalid = [allvalid; true(num_newpts,1)];
         %Give these points unique IDs
@@ -39,11 +40,9 @@ function newpoint_struct = updatePoints(oldpoint_struct,im,params)
         allID = [allID ; newIDs];
     end
     
-    [allpts_corrected,allvalid_corrected] = correctOutOfBoundPts(allpts,allvalid,size(im));
+    [allpts_corrected,allvalid_corrected] = correctOutOfBoundPts(allcoords,allvalid,size(im));
     newpoint_struct.coords = allpts_corrected;
     newpoint_struct.validity = allvalid_corrected;
     newpoint_struct.ID = allID;
     %Update is_margin (once is_margin is implemented)
-end
-    
-    
+end    

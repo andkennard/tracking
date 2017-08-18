@@ -69,8 +69,8 @@ for iT = 2:stop_frame
     if (iT > params.point_update_delay) && ...
        mod(iT,params.point_update_interval)==0
        
-       all_points(iT) = updatePoints(all_points(iT),reader,params); %FINISH!!!
-       
+       all_points(iT) = updatePoints(all_points(iT),im_p,params); %FINISH!!!
+       setPoints(tracker,single(all_points(iT).coords),all_points(iT).validity);
     end
 end
 close(h)

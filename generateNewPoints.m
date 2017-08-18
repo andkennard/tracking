@@ -19,6 +19,7 @@ newpts = newptsobj.Location;
 
 %Translate the point coordinates based on the location of the crop window
 [num_newpts,~] = size(newpts);
-offset = [iX -1; iY -1];
+offset = [iX-1, iY-1];
 offset_vec = repmat(offset,num_newpts,1);
 newpts = newpts + offset_vec;
+end
