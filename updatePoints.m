@@ -12,8 +12,19 @@ function newpoint_struct = updatePoints(oldpoint_struct,im,params)
     allcoords = oldpoint_struct.coords;
     allvalid  = oldpoint_struct.validity;
     allID     = oldpoint_struct.ID;
-    
+    allismargin = oldpoint_struct.is_margin;
+    num_margin_pts = sum(allismargin);
     goodcoords =  allcoords(allvalid,:);
+    
+    %Generate an alpha shape for the margin points in this frame.
+    shp = alphaShape(allcoords(allismargin,:),params.alphaParam);
+    %{
+    %Update allismargin to include points that may now be on the margin
+    allismargin = inShape(shp,allcoords);
+    if sum(allismargin)~=num_margin_pts
+        disp(sum(allismargin) - num_margin_pts);
+    end
+    %}
     
     %Bin points into a 2D grid, and figure out how many points lie in each
     %point of the 2D grid (and how many pixels are in each sector of the
@@ -28,6 +39,8 @@ function newpoint_struct = updatePoints(oldpoint_struct,im,params)
     
     for k = 1:numel(need_more_points);
         newpts = generateNewPoints(im,need_more_points(k),edges_x,edges_y,size(n_valid));
+        assert(isa(newpts,'double'),sprintf('newpts is of type %s',class(newpts)));
+        
         [num_newpts, ~] = size(newpts);
         %Update point list
         allcoords = [allcoords ; newpts];
@@ -38,6 +51,9 @@ function newpoint_struct = updatePoints(oldpoint_struct,im,params)
         stop_idx = start_idx + num_newpts - 1;
         newIDs = uint32((start_idx:stop_idx)');
         allID = [allID ; newIDs];
+        %Check if points are in the margin
+        new_ismargin = inShape(shp,newpts);
+        allismargin = [allismargin ; new_ismargin];
     end
     
     [allpts_corrected,allvalid_corrected] = correctOutOfBoundPts(allcoords,allvalid,size(im));
@@ -45,4 +61,5 @@ function newpoint_struct = updatePoints(oldpoint_struct,im,params)
     newpoint_struct.validity = allvalid_corrected;
     newpoint_struct.ID = allID;
     %Update is_margin (once is_margin is implemented)
+    newpoint_struct.is_margin = allismargin;
 end    

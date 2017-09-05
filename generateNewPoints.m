@@ -15,7 +15,7 @@ iY = crop_window(2);
 im_cropped = imcrop(im,crop_window);
 %Detect points in the cropped image
 newptsobj  = detectMinEigenFeatures(im_cropped);
-newpts = newptsobj.Location;
+newpts = double(newptsobj.Location);
 
 %Translate the point coordinates based on the location of the crop window
 [num_newpts,~] = size(newpts);
