@@ -5,7 +5,7 @@ params.num_bins = [8,8];
 params.preprocess_func = @trackingImPreprocess;
 params.MaxBidirectionalError = 2;
 params.BlockSize = [41,41];
-params.track_margin = 0;
+params.track_margin = 1;
 params.init_margin_mask = imread('MarginMask.tif');
 params.testing_stop_frame = 0;
 params.point_update_delay = 5;
@@ -21,5 +21,6 @@ for iT = 1:sizeT
     im = trackingImPreprocess(im);
     goodpts = all_points(iT).coords(all_points(iT).validity,:);
     im_marked = insertMarker(im,goodpts,'+','Color','Green');
+    
     imwritemulti(im_marked,'im_tracked.tif');
 end
