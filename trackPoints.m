@@ -35,9 +35,12 @@ all_points(1).coords = double(p0);
 all_points(1).validity = true(num_points,1);
 all_points(1).ID = uint32(1:num_points)';
 if params.track_margin ==1
-    all_points(1).is_margin = testInRegion(p0,params.init_margin_mask);
+    [margin_y,margin_x] = find(params.init_margin_mask);
+    init_shp = alphaShape(margin_x,margin_y);
+    all_points(1).is_margin = inShape(init_shp,double(p0));
+    %all_points(1).is_margin = testInRegion(p0,params.init_margin_mask);
 end
-
+%%
 %For testing purposes, choose an earlier point than the end of the movie to
 %stop.
 if params.testing_stop_frame>0
@@ -63,7 +66,7 @@ for iT = 2:stop_frame
     all_points(iT).coords = double(pT);
     all_points(iT).validity = logical(validity);
     all_points(iT).ID = all_points(iT-1).ID; %no points have been updated yet
-    
+    all_points(iT).is_margin = all_points(iT-1).is_margin;
     %Update the list of points periodically (but wait a bit to avoid very
     %high point densities that confuse tracking)
     if (iT > params.point_update_delay) && ...
