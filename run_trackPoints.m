@@ -1,4 +1,8 @@
-reader = bfGetReader('20x_1xopt_Wounding_fish_2_Max.tif');
+[filename,pathname] = uigetfile();
+%%
+fname = fullfile(pathname,filename);
+
+reader = bfGetReader(fname);
 
 %%
 params.num_bins = [8,8];
@@ -6,7 +10,7 @@ params.preprocess_func = @trackingImPreprocessBackgroundSub;
 params.MaxBidirectionalError = 1;
 params.BlockSize = [41,41];
 params.track_margin = 1;
-params.init_margin_mask = imread('MarginMask_2.tif');
+params.init_margin_mask = imread(fullfile(pathname,'Margin_Mask.tif'));
 params.testing_stop_frame = 0;
 params.point_update_delay = 5;
 params.point_density_thresh = 0.008;
@@ -16,7 +20,7 @@ params.alphaParam = 20;
 all_points = trackPoints(reader,params);
 
 %%
-im_filename = initAppendFile('im_tracked.tif');
+im_filename = initAppendFile(fullfile(pathname,'im_tracked.tif'));
 sizeT = reader.getSizeT();
 for iT = 1:sizeT
     im = bf_getFrame(reader,1,1,iT);
