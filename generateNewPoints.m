@@ -13,6 +13,9 @@ iY = crop_window(2);
 
 %Crop image
 im_cropped = imcrop(im,crop_window);
+%Test if the region is all 0s, in which case no new points should be
+%generated
+if ~isempty(find(im_cropped,1))
 %Detect points in the cropped image
 newptsobj  = detectMinEigenFeatures(im_cropped);
 newpts = double(newptsobj.Location);
@@ -22,4 +25,7 @@ newpts = double(newptsobj.Location);
 offset = [iX-1, iY-1];
 offset_vec = repmat(offset,num_newpts,1);
 newpts = newpts + offset_vec;
+else
+    newpts = [];
+end
 end

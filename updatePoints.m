@@ -36,9 +36,10 @@ function newpoint_struct = updatePoints(oldpoint_struct,im,params)
     point_density = n_valid ./ bin_areas;
     %Identify which bins need more points generated
     need_more_points = find(point_density < params.point_density_thresh);
-    
+    %%
     for k = 1:numel(need_more_points);
         newpts = generateNewPoints(im,need_more_points(k),edges_x,edges_y,size(n_valid));
+        if ~isempty(newpts)
         assert(isa(newpts,'double'),sprintf('newpts is of type %s',class(newpts)));
         
         [num_newpts, ~] = size(newpts);
@@ -54,6 +55,7 @@ function newpoint_struct = updatePoints(oldpoint_struct,im,params)
         %Check if points are in the margin
         new_ismargin = inShape(shp,newpts);
         allismargin = [allismargin ; new_ismargin];
+        end
     end
     
     [allpts_corrected,allvalid_corrected] = correctOutOfBoundPts(allcoords,allvalid,size(im));

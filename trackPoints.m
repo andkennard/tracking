@@ -36,7 +36,7 @@ all_points(1).validity = true(num_points,1);
 all_points(1).ID = uint32(1:num_points)';
 if params.track_margin ==1
     [margin_y,margin_x] = find(params.init_margin_mask);
-    init_shp = alphaShape(margin_x,margin_y);
+    init_shp = alphaShape(margin_x,margin_y,20);
     all_points(1).is_margin = inShape(init_shp,double(p0));
     %all_points(1).is_margin = testInRegion(p0,params.init_margin_mask);
 end
@@ -71,6 +71,7 @@ for iT = 2:stop_frame
     %high point densities that confuse tracking)
     if (iT > params.point_update_delay) && ...
        mod(iT,params.point_update_interval)==0
+   disp(iT)
        
        all_points(iT) = updatePoints(all_points(iT),im_p,params); %FINISH!!!
        setPoints(tracker,single(all_points(iT).coords),all_points(iT).validity);

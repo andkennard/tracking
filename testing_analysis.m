@@ -34,6 +34,7 @@ for t = 1:num_timepoints
    % distances(good_interior_IDs,t) = quantile(dist_to_margin,.01,2);
     position_data(good_interior_IDs,(2*t-1):(2*t)) = good_interior_coords;
 end
+centroid_all_position = nanmean(position_data,1);
 centroid_position_mat = repmat(centroid_position,num_trajectories,1);
 distances = sqrt((position_data(:,1:2:end) - centroid_position_mat(:,1:2:end)).^2 +...
                  (position_data(:,2:2:end) - centroid_position_mat(:,2:2:end)).^2);
@@ -58,7 +59,7 @@ time_scale = 30;
 velocity_scale = pixel_scale / time_scale;
 v = velocity_scale * (distances(:,2:end) - distances(:,1:end-1));
 true_distances = pixel_scale * distances;
-speed = abs(v);
+%speed = abs(v);
 
 %%
 bins = 0:10:(max(true_distances(:))+10);
@@ -70,7 +71,7 @@ SUB_T(SUB_D==0) = 40;
 SUB_D(SUB_D==0) = 1;
 subs = [SUB_D(:),SUB_T(:)];
 mean_speed = accumarray(subs,speed(:),[],@(x) nanmean(x));
-%mean_speed = mean_speed(end:-1:1,:);
+mean_speed = mean_speed(end:-1:1,:);
 mean_speedu8 = uint16((65355/(max(mean_speed(:)) - min(mean_speed(:)))) * (mean_speed(:,1:end-1) - min(mean_speed(:))));
 imwrite(mean_speedu8,'distance_kymograph.tif');
 figure,imshow(mean_speedu8,[])
@@ -113,19 +114,25 @@ figure,plot(centroid_position(1:2:end),centroid_position(2:2:end),'b-')
 xlim([0,897])
 ylim([0,435])
 
+figure,plot(centroid_all_position(1:2:end),centroid_all_position(2:2:end),'b-')
+xlim([0,897])
+ylim([0,435])
+
 %% Plot speed as a function of time in color scale
+speedcolorfname= initAppendFile('marked_image_speed_colorcoded.tif');
 edges = linspace(0,0.4,50);
 [~,~,speed_bin_idx] = histcounts(speed,edges);
 cmap  = colormap(parula(numel(edges)));
 cmap = 255*cmap;
 
 for t=1:39
-    im_c = bf_getFrame(reader,1,1,t);
+    im_c = double(bf_getFrame(reader,1,1,t));
+    im_c = uint8((255/(max(im_c(:)) - min(im_c(:)))) * (im_c - min(im_c(:))));
     positions = position_data(speed_bin_idx(:,t)~=0,(2*t-1):(2*t));
     b = speed_bin_idx(speed_bin_idx(:,t)~=0,t);
     marker_colors = cmap(b,:);
     im_c = insertMarker(im_c,positions,'+','Color',marker_colors);
-    im_c = insertMarker(im_c,centroid_position((2*t-1):(2*t)),'o','Color','Red','Size',5);
+    im_c = insertMarker(im_c,centroid_all_position((2*t-1):(2*t)),'o','Color','Red','Size',5);
     imwritemulti(im_c,'marked_image_speed_colorcoded.tif');
 end
 figure,imshow(im_c,[])
