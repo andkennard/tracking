@@ -1,5 +1,5 @@
-[filename,pathname] = uigetfile();
-%%
+[filename,pathname] = uigetfile('*.tif','Tiff Files');
+
 fname = fullfile(pathname,filename);
 
 reader = bfGetReader(fname);

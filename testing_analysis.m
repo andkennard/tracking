@@ -1,5 +1,3 @@
-%% Parameters
-CV_THRESH = 0.1;
 
 %% Put all position data into a matrix; each row is x1,y1,x2,y2,...xN,yN for
 %  each trajectory (NaN otherwise). 
@@ -64,7 +62,7 @@ bins = 0:10:(max(true_distances(:))+10);
 [N,~,bin_idx] = histcounts(true_distances,bins);
 SUB_T = repmat(1:(num_timepoints-1),num_good_trajectories,1);
 SUB_D = bin_idx(:,1:(end-1));
-SUB_T(SUB_D==0) = 40;
+SUB_T(SUB_D==0) = num_timepoints;
 SUB_D(SUB_D==0) = 1;
 subs = [SUB_D(:),SUB_T(:)];
 mean_speed = accumarray(subs,speed(:),[],@(x) nanmean(x));
@@ -78,7 +76,7 @@ distance_fname = initAppendFile(fullfile(pathname,'marked_image_distance_colorco
 num_bins = max(bin_idx(:));
 cmap = colormap(parula(num_bins));
 cmap = 255*cmap(end:-1:1,:);
-for t=1:40
+for t=1:num_timepoints
 im_c = im2uint8(bf_getFrame(reader,1,1,t));
 positions = position_data(bin_idx(:,t)~=0,(2*t-1):(2*t));
 b = bin_idx(bin_idx(:,t)~=0,t);
@@ -88,6 +86,14 @@ imwritemulti(im_c,distance_fname)
 end
 figure,imshow(im_c,[])
 
+
+%% Save data
+[~,fn,~] = fileparts(filename);
+savefname = fullfile(pathname,sprintf('%s_trajectory_data.mat',fn));
+
+save(savefname,'all_points','true_distances','speed','pixel_scale','time_scale','mean_speed','centroid_position','params');
+    
+%{
 %% Collect coordinates of points on margin at each timepoint
 [num_trajectories,num_timepoints] = findPositionMatrixDimensions(all_points);
 margin_position = nan(num_trajectories,2*num_timepoints);
@@ -114,6 +120,7 @@ ylim([0,435])
 figure,plot(centroid_all_position(1:2:end),centroid_all_position(2:2:end),'b-')
 xlim([0,897])
 ylim([0,435])
+%}
 
 %% Plot speed as a function of time in color scale
 speedcolorfname= initAppendFile(fullfile(pathname,'marked_image_speed_colorcoded.tif'));
@@ -122,7 +129,7 @@ edges = linspace(0,0.4,50);
 cmap  = colormap(parula(numel(edges)));
 cmap = 255*cmap;
 
-for t=1:39
+for t=1:(num_timepoints-1)
     im_c = im2uint8(bf_getFrame(reader,1,1,t));
     positions = position_data(speed_bin_idx(:,t)~=0,(2*t-1):(2*t));
     b = speed_bin_idx(speed_bin_idx(:,t)~=0,t);
@@ -139,7 +146,7 @@ valid_pts = all(~isnan(position_data(:,1:4)),2);
 im1 = insertShape(im1,'FilledCircle',[position_data(valid_pts,1:2),ones(sum(valid_pts),1)],'Color','Yellow');
 
 imwritemulti(im1,velocity_fname);
-for t= 1:39
+for t= 1:(num_timepoints-1)
     valid_velocities = all(~isnan(position_data(:,(2*t-1):(2*(t+1)))),2);
     im_c = im2uint8(bf_getFrame(reader,1,1,t));
     im_c = insertShape(im_c,'Line',position_data(valid_velocities,(2*t-1):(2*(t+1))));
@@ -148,6 +155,7 @@ end
 figure,imshow(im_c,[])
     
 
+%{
 %% Create a bin index for the data
 bin_size = 32;
 num_bins_x = sizeX/bin_size;
@@ -194,3 +202,4 @@ t=1;
 interior_pts = goodcoords(~goodismargin,:);
 margin_pts = goodcoords(goodismargin,:);
 distances = pdist2(interior_pts,margin_pts);
+%}
