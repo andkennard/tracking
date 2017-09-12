@@ -4,6 +4,10 @@
 [WT2_fname,WT2_path] = uigetfile('*.mat');
 [WT3_fname,WT3_path] = uigetfile('*.mat');
 
+
+[Blebb_fname,Blebb_path] = uigetfile('*.mat');
+[ATPgS_fname,ATPgS_path] = uigetfile('*.mat');
+
 %% Load the data
 fnames = {WT1_fname,WT2_fname,WT3_fname};
 paths  = {WT1_path,WT2_path,WT3_path};
@@ -34,7 +38,22 @@ for k =1:numel(mean_speeds)
 end
 
 avg_speed = total_speeds ./ total_counts;
-figure,imshow(avg_speed,[])
+f=figure;
+imshow(avg_speed,[0,0.34])
+
+
+colormap(plasma)
+colorbar()
+caxis([0,0.34])
+truesize(f,[500,500])
+%% Show mean speed for blebbistatin data
+f=figure;
+imshow(a_mean_speed,[0,0.34])
+colormap(plasma)
+colorbar()
+caxis([0,0.34])
+truesize(f,[500,500])
+
     
 %%
 [XV,YV] = meshgrid(0:30:1200,0:10:630);
@@ -46,10 +65,12 @@ daspect([3,1,1])
 set(gca,'FontSize',18)
 ylabel('Distance from Wound (µm)')
 xlabel('Time (s)')
-cb = colorbar;
+colormap(plasma);
+cb = colorbar();
 caxis([0,max(avg_speed(:))])
 ylabel(cb,'Speed (µm/s)','FontSize',18)
 axis([0,800,0,350])
+%caxis([0,0.34])
 
 %%
 havg = fspecial('average');
@@ -64,9 +85,29 @@ figure,contour(XV,YV,cgaus,v,'LineWidth',2);
 figure,imshow(FX,[])
 figure,quiver(FX,FY)
 figure,contourf(cavg,v)
-[xi,yi] = ginput
+g_mag = sqrt(FX.^2+FY.^2);
+figure,contourf(g_mag)
 %%
 grad_x_i = interp2(1:41,1:64,FX,xi,yi,'cubic');
 grad_y_i = interp2(1:41,1:64,FY,xi,yi,'cubic');
+slope = -grad_x_i./grad_y_i;
+figure,plot(slope)
+
+%% Display Blebb data
+b_data = load(fullfile(Blebb_path,Blebb_fname));
+b_mean_speed = b_data.mean_speed;
+b_max_speed = max(b_mean_speed(:))
+
+a_data = load(fullfile(ATPgS_path,ATPgS_fname));
+a_mean_speed = a_data.mean_speed;
+a_max_speed = max(a_mean_speed(:))
+
+%%
+figure,quiver(XV,YV,FX,FY)
+[xi,yi] = ginput;
+%%
+
+grad_x_i = interp2(XV,YV,FX,xi,yi,'cubic');
+grad_y_i = interp2(XV,YV,FY,xi,yi,'cubic');
 slope = -grad_x_i./grad_y_i;
 figure,plot(slope)

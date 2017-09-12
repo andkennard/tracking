@@ -31,13 +31,17 @@ end
 centroid_all_position = nanmean(position_data,1);
 centroid_position_mat = repmat(centroid_position,num_trajectories,1);
 %Determine distance to the centroid of the margin points
-distances = sqrt((position_data(:,1:2:end) - centroid_position_mat(:,1:2:end)).^2 +...
-                 (position_data(:,2:2:end) - centroid_position_mat(:,2:2:end)).^2);
+xy = position_data - centroid_position_mat;
+distances = sqrt(xy(:,1:2:end).^2 + xy(:,2:2:end).^2);
+%distances = sqrt((position_data(:,1:2:end) - centroid_position_mat(:,1:2:end)).^2 +...
+%                 (position_data(:,2:2:end) - centroid_position_mat(:,2:2:end)).^2);
+            
 %Clean-up data: Find trajectories that are 1 timepoint or less
 
 no_tracks = find(sum(~isnan(position_data),2)<=2);
 distances(no_tracks,:) = [];
 position_data(no_tracks,:) = [];
+xy(no_tracks,:) = [];
 %% Get the x and y displacement components u and v (resp.) for the data
 pixel_scale = 0.7; %microns per pixel
 time_scale  = 30; %30 seconds per timepoint
