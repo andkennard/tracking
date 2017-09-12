@@ -1,4 +1,4 @@
-function im_p = trackingImPreprocessBackgroundSub(im)
+function [im_p,imBW] = trackingImPreprocessBackgroundSub(im)
 %%% Pre-process images with background subtraction
 %%% Filter images to enhance contrast, and also remove the background
 %%% (which includes small features that can screw up the point detector).
